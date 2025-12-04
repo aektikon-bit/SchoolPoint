@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="ระบบคำนวณคะแนนนักศึกษา", layout="centered")
-st.title("🎓 ระบบคำนวณคะแนนนักศึกษา")
+st.title("🎓 ระบบคำนวณคะแนนนักศึกษา (กรอกหลายคน)")
 
 # ฟังก์ชันคำนวณเกรด
 def calculate_grade(total):
@@ -23,39 +23,29 @@ def calculate_grade(total):
     else:
         return "F"
 
-# ข้อมูลนักศึกษาจะเก็บใน session_state
-if "students" not in st.session_state:
-    st.session_state.students = []
+st.subheader("🔢 จำนวนคนที่ต้องการกรอก")
+num = st.number_input("จำนวนคน", min_value=1, max_value=50, step=1)
 
-# Input ข้อมูลทีละคน
-st.subheader("เพิ่มข้อมูลนักศึกษา")
+students = []
 
-name = st.text_input("ชื่อนักศึกษา")
-mid = st.number_input("คะแนนกลางภาค (เต็ม 30)", min_value=0.0, max_value=30.0, step=0.5)
-final = st.number_input("คะแนนปลายภาค (เต็ม 70)", min_value=0.0, max_value=70.0, step=0.5)
+st.write("### 📝 กรอกข้อมูลนักศึกษา")
+for i in range(int(num)):
+    st.write(f"#### นักศึกษาคนที่ {i+1}")
 
-if st.button("เพิ่มนักศึกษา"):
-    total = mid + final
-    grade = calculate_grade(total)
+    name = st.text_input(f"ชื่อนักศึกษา #{i+1}", key=f"name_{i}")
+    mid = st.number_input(f"กลางภาค (0–30) #{i+1}", 0.0, 30.0, key=f"mid_{i}")
+    final = st.number_input(f"ปลายภาค (0–70) #{i+1}", 0.0, 70.0, key=f"final_{i}")
 
-    st.session_state.students.append({
-        "ชื่อ": name,
-        "กลางภาค": mid,
-        "ปลายภาค": final,
-        "คะแนนรวม": total,
-        "เกรด": grade
-    })
-    st.success(f"เพิ่มข้อมูลของ {name} เรียบร้อยแล้ว!")
+    students.append([name, mid, final])
 
-# แสดงผลตาราง
-st.subheader("📋 ผลการคำนวณคะแนน")
-if st.session_state.students:
-    df = pd.DataFrame(st.session_state.students)
+if st.button("คำนวณผลคะแนนทั้งหมด"):
+    result = []
+    for s in students:
+        name, mid, final = s
+        total = mid + final
+        grade = calculate_grade(total)
+        result.append([name, mid, final, total, grade])
+
+    df = pd.DataFrame(result, columns=["ชื่อ", "กลางภาค", "ปลายภาค", "รวม", "เกรด"])
+    st.success("คำนวณเรียบร้อยแล้ว!")
     st.dataframe(df, use_container_width=True)
-else:
-    st.info("ยังไม่มีข้อมูลนักศึกษา กรุณากรอกข้อมูลด้านบน")
-
-# ปุ่มล้างข้อมูล
-if st.button("ล้างข้อมูลทั้งหมด"):
-    st.session_state.students = []
-    st.warning("ล้างข้อมูลทั้งหมดแล้ว")
