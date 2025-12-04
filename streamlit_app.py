@@ -42,8 +42,8 @@ for i in range(int(num)):
     st.write(f"#### นักศึกษาคนที่ {i+1}")
 
     name = st.text_input(f"ชื่อนักศึกษา #{i+1}", key=f"name_{i}")
-    mid = st.number_input(f"คะแนนกลางภาค (0–30) #{i+1}", 0.0, 30.0, key=f"mid_{i}")
-    final = st.number_input(f"คะแนนปลายภาค (0–70) #{i+1}", 0.0, 70.0, key=f"final_{i}")
+    mid = st.number_input(f"คะแนนกลางภาค (0–100) #{i+1}", 0.0, 100.0, key=f"mid_{i}")
+    final = st.number_input(f"คะแนนปลายภาค (0–100) #{i+1}", 0.0, 100.0, key=f"final_{i}")
 
     students.append([name, mid, final])
 
