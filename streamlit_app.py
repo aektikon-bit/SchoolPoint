@@ -1,52 +1,61 @@
 import streamlit as st
+import pandas as pd
 
-def calculate_total_score(midterm, final):
-    """Calculates the total score from midterm and final scores."""
-    return midterm + final
+st.set_page_config(page_title="ระบบคำนวณคะแนนนักศึกษา", layout="centered")
+st.title("🎓 ระบบคำนวณคะแนนนักศึกษา")
 
-st.set_page_config(page_title="โปรแกรมคำนวณคะแนนรวมนักศึกษา", layout="centered")
-
-st.title("คำนวณคะแนนรวมนักศึกษา")
-st.subheader("จากโจทย์: คะแนนรวม = คะแนนสอบกลางภาค + คะแนนสอบปลายภาค")
-
-# Input fields
-midterm_score = st.number_input(
-    "1. กรุณาป้อนคะแนนสอบกลางภาค (Midterm Score):",
-    min_value=0.0,
-    max_value=100.0,
-    value=0.0,
-    step=0.5,
-    key="midterm"
-)
-
-final_score = st.number_input(
-    "2. กรุณาป้อนคะแนนสอบปลายภาค (Final Exam Score):",
-    min_value=0.0,
-    max_value=100.0,
-    value=0.0,
-    step=0.5,
-    key="final"
-)
-
-# Calculation and Output
-if st.button("คำนวณคะแนนรวม"):
-    # Simple validation (though number_input handles min/max)
-    if midterm_score < 0 or final_score < 0:
-        st.error("คะแนนต้องไม่เป็นค่าลบ")
+# ฟังก์ชันคำนวณเกรด
+def calculate_grade(total):
+    if total >= 80:
+        return "A"
+    elif total >= 75:
+        return "B+"
+    elif total >= 70:
+        return "B"
+    elif total >= 65:
+        return "C+"
+    elif total >= 60:
+        return "C"
+    elif total >= 55:
+        return "D+"
+    elif total >= 50:
+        return "D"
     else:
-        total_score = calculate_total_score(midterm_score, final_score)
-        
-        st.success(f"✅ ผลการคำนวณคะแนนรวม:")
-        st.metric(
-            label="คะแนนรวมที่นักศึกษาได้รับ (Total Score)",
-            value=f"{total_score:.2f} คะแนน"
-        )
-        
-        st.markdown("---")
-        st.info(f"**การวิเคราะห์:**")
-        st.markdown(f"- **ข้อมูลนำเข้า (Input):** คะแนนสอบกลางภาค ({midterm_score}) และ คะแนนสอบปลายภาค ({final_score})")
-        st.markdown(f"- **กระบวนการ (Process):** คะแนนกลางภาค + คะแนนปลายภาค = {midterm_score} + {final_score}")
-        st.markdown(f"- **ข้อมูลนำออก (Output):** คะแนนรวม ({total_score})")
+        return "F"
 
-st.markdown("---")
-st.caption("แอปพลิเคชัน Streamlit โดย Manus AI")
+# ข้อมูลนักศึกษาจะเก็บใน session_state
+if "students" not in st.session_state:
+    st.session_state.students = []
+
+# Input ข้อมูลทีละคน
+st.subheader("เพิ่มข้อมูลนักศึกษา")
+
+name = st.text_input("ชื่อนักศึกษา")
+mid = st.number_input("คะแนนกลางภาค (เต็ม 30)", min_value=0.0, max_value=30.0, step=0.5)
+final = st.number_input("คะแนนปลายภาค (เต็ม 70)", min_value=0.0, max_value=70.0, step=0.5)
+
+if st.button("เพิ่มนักศึกษา"):
+    total = mid + final
+    grade = calculate_grade(total)
+
+    st.session_state.students.append({
+        "ชื่อ": name,
+        "กลางภาค": mid,
+        "ปลายภาค": final,
+        "คะแนนรวม": total,
+        "เกรด": grade
+    })
+    st.success(f"เพิ่มข้อมูลของ {name} เรียบร้อยแล้ว!")
+
+# แสดงผลตาราง
+st.subheader("📋 ผลการคำนวณคะแนน")
+if st.session_state.students:
+    df = pd.DataFrame(st.session_state.students)
+    st.dataframe(df, use_container_width=True)
+else:
+    st.info("ยังไม่มีข้อมูลนักศึกษา กรุณากรอกข้อมูลด้านบน")
+
+# ปุ่มล้างข้อมูล
+if st.button("ล้างข้อมูลทั้งหมด"):
+    st.session_state.students = []
+    st.warning("ล้างข้อมูลทั้งหมดแล้ว")
